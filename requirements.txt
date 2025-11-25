@@ -1,10 +1,20 @@
+# Core app
 streamlit
 python-dotenv
 openai>=1.40.0
+
+# LangChain & agents
 langchain
 langchain-core
 langchain-openai
+langchain-community
+langchain-text-splitters
 langgraph
+
+# Vector store used in retriever.py
+chromadb
+
+# Utils
 requests
 pydantic
 tqdm
