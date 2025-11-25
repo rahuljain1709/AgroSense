@@ -4,6 +4,33 @@ import sys
 import streamlit as st
 from dotenv import load_dotenv
 
+# ----------------- CONFIG / SECRETS SETUP -----------------
+
+# Load .env for local development
+load_dotenv()
+
+# Helper: prefer Streamlit secrets, else .env / env vars
+def get_config(key: str, default: str | None = None) -> str | None:
+    # On Streamlit Cloud, use st.secrets
+    if hasattr(st, "secrets") and key in st.secrets:
+        return st.secrets[key]
+    # Locally, fall back to environment variables / .env
+    return os.getenv(key, default)
+
+# List all keys your code / src uses
+for k in [
+    "OPENAI_API_KEY",
+    "PINECONE_API_KEY",
+    "PINECONE_INDEX_NAME",
+    "PINECONE_REGION",          # or PINECONE_ENVIRONMENT depending on your code
+]:
+    v = get_config(k)
+    if v:
+        # Ensure downstream imports (agent.graph, etc.) can read them via os.getenv
+        os.environ[k] = v
+
+# ----------------- IMPORT YOUR GRAPH AFTER SECRETS -----------------
+
 # Make sure Python can see the `src` package
 CURRENT_DIR = os.path.dirname(__file__)
 SRC_DIR = os.path.join(CURRENT_DIR, "src")
@@ -12,7 +39,7 @@ if SRC_DIR not in sys.path:
 
 from agent.graph import graph  # type: ignore
 
-load_dotenv()
+# ----------------- STREAMLIT UI -----------------
 
 st.set_page_config(
     page_title="AgroSense AI",
@@ -34,7 +61,6 @@ with st.sidebar:
         """
     )
     st.markdown("---")
-
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
@@ -71,7 +97,10 @@ if user_input:
     try:
         result = graph.invoke(input_state)
     except Exception as e:
-        assistant_reply = f"Sorry, something went wrong while processing your request:\n\n`{e}`"
+        assistant_reply = (
+            "Sorry, something went wrong while processing your request:\n\n"
+            f"`{e}`"
+        )
         extracted_params = None
         crop_results = []
     else:
@@ -93,7 +122,10 @@ if user_input:
             if crop_results:
                 st.markdown("**Top Crop Candidates:**")
                 for i, item in enumerate(crop_results, start=1):
-                    st.write(f"{i}. **{item['crop']}** (score = `{item['score']:.2f}`)")
+                    st.write(
+                        f"{i}. **{item['crop']}** (score = `{item['score']:.2f}`)"
+                    )
 
-    st.session_state["messages"].append({"role": "assistant", "content": assistant_reply})
-
+    st.session_state["messages"].append(
+        {"role": "assistant", "content": assistant_reply}
+    )
