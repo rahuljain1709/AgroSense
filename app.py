@@ -24,9 +24,6 @@ def get_config(key: str, default: str | None = None) -> str | None:
 # List only the keys your project actually needs
 for k in [
     "OPENAI_API_KEY",
-    # add more if you use them, e.g.:
-    # "LANGCHAIN_API_KEY",
-    # "LANGCHAIN_PROJECT",
 ]:
     v = get_config(k)
     if v:
@@ -83,22 +80,7 @@ st.markdown(
     """
 )
 
-# ----------------- RENDER PREVIOUS CHAT (WITH TTS) -----------------
-
-for i, msg in enumerate(st.session_state["messages"]):
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-        # Add TTS button for each assistant message
-        if msg["role"] == "assistant":
-            if st.button("🔊 जवाब सुनें", key=f"tts_{i}"):
-                audio_bytes = text_to_speech_bytes(msg["content"])
-                if audio_bytes:
-                    st.audio(audio_bytes, format="audio/mp3")
-                else:
-                    st.error("आवाज़ बनाने में दिक्कत आई, कृपया दोबारा कोशिश करें।")
-
-# ----------------- INPUT: VOICE OR TEXT -----------------
+# ----------------- INPUT: VOICE OR TEXT (AND AGENT CALL) -----------------
 
 st.write("### बोलकर या लिखकर अपना प्रश्न पूछें")
 
@@ -123,15 +105,14 @@ if audio_data:
 
 # 2) Normal text input fallback
 if user_input is None:
-    user_input = st.chat_input("अपना प्रश्न पूछें")
+    text_input = st.chat_input("अपना प्रश्न पूछें")
+    if text_input:
+        user_input = text_input
 
-# ----------------- MAIN AGENT CALL -----------------
-
+# ---- If we got any user_input this run, call the agent and update history ----
 if user_input:
-    # Show user message
+    # Add user message to history
     st.session_state["messages"].append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
 
     # Prepare input state: merge previous state + new query
     prev_state = st.session_state["agent_state"] or {}
@@ -154,22 +135,43 @@ if user_input:
         # Save new agent state for next turn
         st.session_state["agent_state"] = result
 
-    # Show assistant message
-    with st.chat_message("assistant"):
-        st.markdown(assistant_reply)
-
-        with st.expander("🔍 See AgroSense reasoning", expanded=False):
-            if extracted_params:
-                st.markdown("**Known Environment Parameters:**")
-                st.json(extracted_params)
-            if crop_results:
-                st.markdown("**Top Crop Candidates:**")
-                for i, item in enumerate(crop_results, start=1):
-                    st.write(
-                        f"{i}. **{item['crop']}** (score = `{item['score']:.2f}`)"
-                    )
-
-    # Store assistant message in history
+    # Save assistant reply in history
     st.session_state["messages"].append(
         {"role": "assistant", "content": assistant_reply}
     )
+
+    # Store extra reasoning info for THIS last turn in session_state
+    # (so we can show it under the last assistant message)
+    st.session_state["last_extracted_params"] = extracted_params
+    st.session_state["last_crop_results"] = crop_results
+
+# ----------------- RENDER FULL CHAT HISTORY (WITH TTS + REASONING) -----------------
+
+last_extracted = st.session_state.get("last_extracted_params")
+last_crops = st.session_state.get("last_crop_results")
+
+for i, msg in enumerate(st.session_state["messages"]):
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+        if msg["role"] == "assistant":
+            # TTS button for each assistant message
+            if st.button("🔊 जवाब सुनें", key=f"tts_{i}"):
+                audio_bytes = text_to_speech_bytes(msg["content"])
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                else:
+                    st.error("आवाज़ बनाने में दिक्कत आई, कृपया दोबारा कोशिश करें।")
+
+            # Show reasoning only for the *latest* assistant message
+            if i == len(st.session_state["messages"]) - 1:
+                with st.expander("🔍 See AgroSense reasoning", expanded=False):
+                    if last_extracted:
+                        st.markdown("**Known Environment Parameters:**")
+                        st.json(last_extracted)
+                    if last_crops:
+                        st.markdown("**Top Crop Candidates:**")
+                        for j, item in enumerate(last_crops, start=1):
+                            st.write(
+                                f"{j}. **{item['crop']}** (score = `{item['score']:.2f}`)"
+                            )
