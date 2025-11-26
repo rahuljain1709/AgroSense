@@ -57,9 +57,9 @@ def text_to_speech_bytes(text: str) -> Optional[bytes]:
             input=text,
             response_format="mp3",     # explicit, works with new SDK
         )
-
+        audio_bytes = response.read()
         # In the current SDK, response.audio contains the raw bytes
-        audio_bytes = getattr(response, "audio", None)
+        #audio_bytes = getattr(response, "audio", None)
 
         # Fallbacks in case the SDK version behaves slightly differently
         if audio_bytes is None:
