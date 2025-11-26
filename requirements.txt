@@ -19,3 +19,4 @@ requests
 pydantic
 tqdm
 typing-extensions
+streamlit-mic-recorder
