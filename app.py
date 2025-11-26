@@ -1,5 +1,7 @@
 import os
 import sys
+from streamlit_mic_recorder import mic_recorder
+from src.audio_utils import speech_to_text_from_bytes, text_to_speech_bytes
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -85,8 +87,33 @@ for msg in st.session_state["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-user_input = st.chat_input("अपना प्रश्न पूछें")
+# ---- Input: voice OR text ----
+st.write("### बोलकर या लिखकर अपना प्रश्न पूछें")
 
+# 1) Voice input via mic
+audio_data = mic_recorder(
+    start_prompt="🎙️ बोलना शुरू करें",
+    stop_prompt="⏹️ रिकॉर्डिंग बंद करें",
+    just_once=True,
+    key="voice_recorder",
+)
+
+user_input = None
+
+if audio_data:
+    st.success("रिकॉर्डिंग हो गई, अब मैं आपकी आवाज़ को टेक्स्ट में बदल रहा हूँ...")
+    transcript = speech_to_text_from_bytes(audio_data["bytes"])
+    if transcript:
+        st.info(f"🗣️ आपने कहा: **{transcript}**")
+        user_input = transcript
+    else:
+        st.error("माफ़ कीजिए, मैं आपकी आवाज़ समझ नहीं पाया। कृपया दोबारा कोशिश करें।")
+
+# 2) Normal text input fallback
+if user_input is None:
+    user_input = st.chat_input("अपना प्रश्न पूछें")
+
+# ---- Existing logic: send user_input into LangGraph ----
 if user_input:
     # Show user message
     st.session_state["messages"].append({"role": "user", "content": user_input})
@@ -118,6 +145,17 @@ if user_input:
     with st.chat_message("assistant"):
         st.markdown(assistant_reply)
 
+        # 🔊 Text-to-speech button
+        if st.button(
+            "🔊 जवाब सुनें",
+            key=f"tts_{len(st.session_state['messages'])}",
+        ):
+            audio_bytes = text_to_speech_bytes(assistant_reply)
+            if audio_bytes:
+                st.audio(audio_bytes, format="audio/mp3")
+            else:
+                st.error("आवाज़ बनाने में दिक्कत आई, कृपया दोबारा कोशिश करें।")
+
         with st.expander("🔍 See AgroSense reasoning", expanded=False):
             if extracted_params:
                 st.markdown("**Known Environment Parameters:**")
@@ -129,7 +167,9 @@ if user_input:
                         f"{i}. **{item['crop']}** (score = `{item['score']:.2f}`)"
                     )
 
+    # Store assistant message in history (if you weren't already doing this elsewhere)
     st.session_state["messages"].append(
         {"role": "assistant", "content": assistant_reply}
     )
+
 
