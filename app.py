@@ -82,10 +82,20 @@ st.markdown(
     """
 )
 
-# Show previous chat
-for msg in st.session_state["messages"]:
+# Show previous chat (with TTS for assistant messages)
+for i, msg in enumerate(st.session_state["messages"]):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
+
+        if msg["role"] == "assistant":
+            # TTS button for each assistant message
+            if st.button("🔊 जवाब सुनें", key=f"tts_{i}"):
+                audio_bytes = text_to_speech_bytes(msg["content"])
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                else:
+                    st.error("आवाज़ बनाने में दिक्कत आई, कृपया दोबारा कोशिश करें।")
+
 
 # ---- Input: voice OR text ----
 st.write("### बोलकर या लिखकर अपना प्रश्न पूछें")
