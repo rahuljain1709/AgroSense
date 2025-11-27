@@ -2,7 +2,7 @@ import os
 import sys
 
 from streamlit_mic_recorder import mic_recorder
-from audio_utils import speech_to_text_from_bytes, text_to_speech_bytes
+from src.audio_utils import speech_to_text_from_bytes, text_to_speech_bytes
 
 import streamlit as st
 from dotenv import load_dotenv
