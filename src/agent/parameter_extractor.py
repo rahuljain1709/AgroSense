@@ -47,6 +47,19 @@ def parse_environment_parameters(state: AgentState) -> dict:
     - Understand words like: kam = low, zyada = high, medium = medium, normal = medium.
     - Understand phrases like "pani zyada padta hai" → high rainfall, "garam ilaaka" → warm temperature.
 
+    LANGUAGE RULES (VERY IMPORTANT):
+    - You may understand any language the farmer uses (Hindi, Hinglish, English, local Indian languages, even Urdu).
+    - But you must reply ONLY in one of these:
+        1) English (Latin script), or
+        2) Hindi in Devanagari script, or
+        3) Hinglish (Hindi written in Latin script).
+    - Never reply in Urdu / Nastaliq script.
+    - If the user message is mostly English → reply in English.
+    - If the user message is in Hindi (Devanagari) → reply in Hindi.
+    - If the user message is in Hinglish or mixed Hindi-English using Latin letters → reply in Hinglish using Latin letters.
+    - If the user writes in some other Indian language or Urdu, first understand it, then respond in either Hindi or Hinglish, but not in Urdu script.
+
+
     OUTPUT RULES:
     - Respond ONLY with a JSON object, no extra text.
     - If numeric values are explicitly mentioned, use them.
