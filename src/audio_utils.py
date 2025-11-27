@@ -25,6 +25,7 @@ def speech_to_text_from_bytes(audio_bytes: bytes) -> str:
         resp = client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe",  # or "gpt-4o-mini-audio" variant
             file=audio_file,
+              language="hi",  
             response_format="text",
         )
         # resp is usually a string or an object with `.text`
