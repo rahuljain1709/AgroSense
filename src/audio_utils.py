@@ -2,9 +2,11 @@
 
 import io
 from typing import Optional
+
 from openai import OpenAI
 
-client = OpenAI()  # Uses OPENAI_API_KEY from env
+# Uses OPENAI_API_KEY from environment
+client = OpenAI()
 
 
 # =========================================================
@@ -14,7 +16,7 @@ client = OpenAI()  # Uses OPENAI_API_KEY from env
 def speech_to_text_from_bytes(audio_bytes: bytes) -> str:
     """
     Convert raw audio bytes into Hindi/Hinglish/English text.
-    Avoids Urdu/Nastaliq script.
+    Avoids Urdu/Nastaliq script as much as possible.
     """
     if not audio_bytes:
         return ""
@@ -26,19 +28,12 @@ def speech_to_text_from_bytes(audio_bytes: bytes) -> str:
         resp = client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe",
             file=audio_file,
-            
-            # Force Hindi language bias so transcription doesn't drift into Urdu
-            language="hi",
-
-            # Important prompt to enforce no Urdu output
+            language="hi",  # bias towards Hindi instead of Urdu
             prompt=(
-                "Transcribe the speech into either Hindi (Devanagari), Hinglish "
-                "(Hindi written in Latin script), or English. "
-                "⚠️ Do NOT use Urdu or Arabic/Nastaliq script even if the "
-                "pronunciation sounds like Urdu. "
-                "Prefer Devanagari Hindi when unsure."
+                "Transcribe the speech into either Hindi in Devanagari, "
+                "Hinglish (Hindi written with English letters), or English. "
+                "Do NOT use Urdu / Arabic / Nastaliq script."
             ),
-
             response_format="text",
         )
 
@@ -62,7 +57,7 @@ def speech_to_text_from_bytes(audio_bytes: bytes) -> str:
 def text_to_speech_bytes(text: str) -> Optional[bytes]:
     """
     Convert text into MP3 audio using OpenAI's TTS model.
-    Correct handling of output bytes.
+    Returns raw audio bytes.
     """
     text = (text or "").strip()
     if not text:
@@ -70,22 +65,21 @@ def text_to_speech_bytes(text: str) -> Optional[bytes]:
 
     try:
         response = client.audio.speech.create(
-            model="gpt-4o-mini-tts",   # You can switch to "tts-1" for higher quality
+            model="gpt-4o-mini-tts",  # or "tts-1" if you prefer
             voice="alloy",
             input=text,
             response_format="mp3",
         )
 
-        # New SDK returns audio bytes inside `.audio`
+        # New SDK: raw mp3 bytes are in .audio
         audio_bytes = getattr(response, "audio", None)
 
         if audio_bytes:
             return audio_bytes
 
-        # Fallback: older SDK versions may return bytes directly
+        # Fallbacks for other SDK behaviours
         if isinstance(response, (bytes, bytearray)):
             return bytes(response)
-
         if hasattr(response, "to_bytes"):
             return response.to_bytes()
 
@@ -94,4 +88,3 @@ def text_to_speech_bytes(text: str) -> Optional[bytes]:
     except Exception as e:
         print("TTS error:", e)
         return b""
-
