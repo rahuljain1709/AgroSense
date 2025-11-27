@@ -82,11 +82,14 @@ st.markdown(
 
 # ----------------- INPUT: VOICE OR TEXT (AND AGENT CALL) -----------------
 
-# Move mic button closer to input field
+user_input = None
+
+# MIC BUTTON: Moved below intro, near input
+st.markdown("### 🎙 बोलें या लिखें अपना प्रश्न:")
 with st.container():
     col1, col2 = st.columns([1, 5])
     with col1:
-        st.markdown("**🎙 बोलें:**")
+        st.markdown("**🎤 Mic:**")
     with col2:
         audio_data = mic_recorder(
             start_prompt="🎙️ बोलना शुरू करें",
@@ -94,8 +97,6 @@ with st.container():
             just_once=True,
             key="voice_recorder",
         )
-
-user_input = None
 
 if audio_data:
     st.success("रिकॉर्डिंग हो गई, अब मैं आपकी आवाज़ को टेक्स्ट में बदल रहा हूँ...")
@@ -144,7 +145,6 @@ if user_input:
     )
 
     # Store extra reasoning info for THIS last turn in session_state
-    # (so we can show it under the last assistant message)
     st.session_state["last_extracted_params"] = extracted_params
     st.session_state["last_crop_results"] = crop_results
 
