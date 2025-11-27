@@ -82,15 +82,18 @@ st.markdown(
 
 # ----------------- INPUT: VOICE OR TEXT (AND AGENT CALL) -----------------
 
-st.write("### बोलकर या लिखकर अपना प्रश्न पूछें")
-
-# 1) Voice input via mic
-audio_data = mic_recorder(
-    start_prompt="🎙️ बोलना शुरू करें",
-    stop_prompt="⏹️ रिकॉर्डिंग बंद करें",
-    just_once=True,
-    key="voice_recorder",
-)
+# Move mic button closer to input field
+with st.container():
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.markdown("**🎙 बोलें:**")
+    with col2:
+        audio_data = mic_recorder(
+            start_prompt="🎙️ बोलना शुरू करें",
+            stop_prompt="⏹️ रिकॉर्डिंग बंद करें",
+            just_once=True,
+            key="voice_recorder",
+        )
 
 user_input = None
 
