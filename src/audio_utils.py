@@ -5,7 +5,7 @@ from typing import Optional
 
 from openai import OpenAI
 
-# Uses OPENAI_API_KEY from environment
+# Uses OPENAI_API_KEY from env
 client = OpenAI()
 
 
@@ -57,34 +57,38 @@ def speech_to_text_from_bytes(audio_bytes: bytes) -> str:
 def text_to_speech_bytes(text: str) -> Optional[bytes]:
     """
     Convert text into MP3 audio using OpenAI's TTS model.
-    Returns raw audio bytes.
+    Returns raw audio bytes (mp3).
     """
     text = (text or "").strip()
     if not text:
         return b""
 
     try:
+        # According to latest OpenAI Python SDK docs, the response of
+        # audio.speech.create(...) is directly the binary audio content.
         response = client.audio.speech.create(
-            model="gpt-4o-mini-tts",  # or "tts-1" if you prefer
+            model="gpt-4o-mini-tts",   # or "tts-1" if available in your org
             voice="alloy",
             input=text,
-            response_format="mp3",
         )
 
-        # New SDK: raw mp3 bytes are in .audio
-        audio_bytes = getattr(response, "audio", None)
+        # New SDKs: response is already bytes-like
+        if isinstance(response, (bytes, bytearray)):
+            return bytes(response)
 
+        # Some SDK builds expose a .audio attribute with bytes
+        audio_bytes = getattr(response, "audio", None)
         if audio_bytes:
             return audio_bytes
 
-        # Fallbacks for other SDK behaviours
-        if isinstance(response, (bytes, bytearray)):
-            return bytes(response)
+        # Fallbacks for other variants
         if hasattr(response, "to_bytes"):
             return response.to_bytes()
 
+        # If none of the above worked, return empty (will trigger your UI error)
         return b""
 
     except Exception as e:
+        # This will show up in Streamlit Cloud logs ("Manage app" → Logs)
         print("TTS error:", e)
         return b""
