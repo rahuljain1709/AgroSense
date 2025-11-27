@@ -1,45 +1,46 @@
 AgroSense: The Curious Farming Assistant
 
-AgroSense is an AI-powered farming assistant that helps farmers make informed decisions. It supports multi-turn conversational interactions with voice input/output, and provides intelligent crop recommendations based on soil and weather conditions. Built with Streamlit and LangChain, it leverages OpenAI's API to engage users in natural dialogue.
+Team STAR – A multi-turn, voice-enabled farming chatbot assistant that provides personalized crop recommendations and agronomy advice.
+
+Project Overview
+
+AgroSense is a Streamlit-based web application that helps farmers make informed decisions about what crops to plant. It leverages OpenAI GPT models and the LangChain/LangGraph framework to enable a conversational AI assistant that can engage in multi-turn dialogue. Farmers can interact with AgroSense through either text or voice (including Hindi, Hinglish, and English), and the assistant will respond with helpful advice. By combining real data on soil nutrients and weather with GPT’s natural language understanding, AgroSense can recommend suitable crops for given conditions and answer follow-up questions. The app maintains persistent conversation memory, so it remembers context across the chat for a more natural, consultative experience.
 
 Features
 
-Conversational AI: Multi-turn chat interface that retains context across questions for a more natural dialogue.
+Intelligent Crop Recommendations: Suggests the best crop to cultivate based on soil parameters (like NPK nutrient levels, pH) and weather conditions (temperature, humidity, rainfall). The assistant analyzes user-provided data and matches it to optimal crop requirements.
 
-Voice Input & Output: Accepts voice queries (speech-to-text) and responds with audio (text-to-speech) for hands-free interaction.
+Voice and Text Interaction (Multilingual): Supports both voice input and typed queries. Users can speak in Hindi, Hinglish, or English, or type their questions, making the tool accessible to a diverse user base.
 
-Crop Recommendations: Suggests optimal crops for planting based on user-provided soil properties and weather conditions, using a knowledge base derived from agricultural data.
+Speech-to-Text and Text-to-Speech Integration: Incorporates speech recognition to convert spoken questions into text, and uses text-to-speech to read out the assistant’s replies. This hands-free interaction allows farmers to use the app in the field without needing to read or type.
+
+Multi-Turn Conversation with Memory: Powered by GPT and LangChain’s memory capabilities, the assistant engages in a natural back-and-forth dialogue. It retains conversation context and previously provided information (persistent memory), enabling follow-up questions and continuous consultation without losing track of earlier details.
+
+User-Friendly Interface: Built with Streamlit, the web app provides an intuitive interface with clear prompts, buttons to record audio, and real-time display of the conversation. Farmers with minimal tech experience can easily use AgroSense.
 
 Tech Stack
 
-Streamlit: Web application framework for the interactive UI.
+Streamlit – Used to develop the interactive web application UI for easy deployment and sharing.
 
-LangChain: Framework for building LLM-powered applications and managing conversational flows.
+LangChain & LangGraph – Libraries for structuring the AI agent’s workflow. LangChain handles prompt chaining and conversational memory, while LangGraph provides a framework for building resilient, stateful agent flows.
 
-OpenAI API: Large language model backend (e.g. GPT-3.5) for natural language understanding and response generation.
+OpenAI GPT models – Large language models (e.g. GPT-3.5/4) that power the chatbot’s natural language understanding and response generation.
 
-Python & Libraries: Python for core logic, plus libraries for speech recognition and text-to-speech to enable voice features.
+Python – The core programming language used for all backend logic, data processing, and integration of components.
+
+streamlit-mic-recorder – A Streamlit component for capturing microphone input and performing speech-to-text. This enables voice query input directly within the app.
+
+ChromaDB – Employed as a vector store for embeddings. It stores conversation context or reference data (such as encoded crop profiles) to enable quick similarity searches and memory retrieval during the conversation.
 
 Dataset
 
-This project uses the Crop Recommendation Dataset from Kaggle as the basis for its crop suggestion feature. The data was simplified by averaging the soil and climate parameters for each crop type to inform the recommendation engine.
+The assistant’s recommendations are informed by the Crop Recommendation Dataset from Kaggle
+github.com
+. This dataset contains 2,200 samples of farming observations with labels for 22 different crops (e.g. rice, maize, apple, cotton, etc.)
+github.com
+. Each sample includes several soil and climate features – Nitrogen content, Phosphorus content, Potassium content, Temperature (°C), Humidity (%), pH of soil, and Rainfall (mm) – along with the optimal crop to grow under those conditions
+github.com
+github.com
+.
 
-Setup
-
-Clone the repository: git clone https://github.com/yourusername/AgroSense.git (replace with the actual repo URL).
-
-Install dependencies: Navigate into the project folder and run pip install -r requirements.txt.
-
-Configure API Key: Obtain an OpenAI API key and set it as an environment variable (e.g. OPENAI_API_KEY) or add it to the app configuration.
-
-Run the app: Start the Streamlit app with streamlit run app.py, then open the local URL it provides (usually http://localhost:8501) in your browser.
-
-Usage Example
-
-Once the app is running, you can interact through text or voice:
-
-Ask a question or describe your farming scenario (e.g. "What crop grows well in acidic soil with high rainfall?").
-
-AgroSense will analyze the input and reply with a recommendation. For instance, it might suggest planting rice and explain that rice thrives in waterlogged, acidic conditions.
-
-You can continue the conversation, ask follow-up questions, or clarify details. The assistant maintains context over multiple turns, making the exchange feel natural and informative.
+For this project, we preprocessed the dataset by grouping the data by crop type and calculating the average value of each feature for that crop. This resulted in a profile of typical soil and weather conditions for each of the 22 crops. These averaged crop profiles are stored in the vector database (ChromaDB) and used by the chatbot to compare against user-provided conditions. When a user asks for a recommendation, the assistant can retrieve the crop profile closest to the given soil/weather parameters and use GPT to formulate a recommendation based on that information.
