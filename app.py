@@ -59,6 +59,8 @@ with st.sidebar:
         2. AgroSense asks for basic details like NPK, Soil pH, Temperature , Rainfall(mm) and location details.
         3. You reply with those details.
         4. It recommends crops + practical tips.
+
+        Powered by Team STAR (IIT Ropar)
         """
     )
     st.markdown("---")
