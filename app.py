@@ -56,7 +56,7 @@ with st.sidebar:
 
         **How it works:**
         1. You ask a general question.
-        2. AgroSense asks for missing soil / weather details.
+        2. AgroSense asks for basic details like NPK, Soil pH, Temperature , Rainfall(mm) and location details.
         3. You reply with those details.
         4. It recommends crops + practical tips.
         """
